@@ -586,7 +586,7 @@ const splitFirstDirRE = /(.+?)[\\/](.+)/
  * Delete every file and subdirectory. **The given directory must exist.**
  * Pass an optional `skip` array to preserve files under the root directory.
  */
-export function emptyDir(dir: string, skip?: string[]): void {
+export async function emptyDir(dir: string, skip?: string[]): Promise<void> {
   const skipInDir: string[] = []
   let nested: Map<string, string[]> | null = null
   if (skip?.length) {
@@ -615,9 +615,9 @@ export function emptyDir(dir: string, skip?: string[]): void {
       continue
     }
     if (nested?.has(file)) {
-      emptyDir(path.resolve(dir, file), nested.get(file))
+      await emptyDir(path.resolve(dir, file), nested.get(file))
     } else {
-      fs.rmSync(path.resolve(dir, file), { recursive: true, force: true })
+      await fsp.rm(path.resolve(dir, file), { recursive: true, force: true })
     }
   }
 }
