@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import fsp from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import crypto from 'node:crypto'
@@ -548,7 +549,7 @@ describe('emptyDir', () => {
       expect(fs.existsSync(path.join(nestedDir, 'remove.txt'))).toBe(false)
       expect(fs.existsSync(path.join(nestedDir, 'keep.txt'))).toBe(true)
     } finally {
-      fs.rmSync(root, { recursive: true, force: true })
+      await fsp.rm(root, { recursive: true, force: true })
     }
   })
 })
