@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import { describe, expect, test } from 'vitest'
@@ -7,6 +8,7 @@ import {
   asyncFlatten,
   bareImportRE,
   combineSourcemaps,
+  emptyDir,
   extractHostnamesFromCerts,
   extractHostnamesFromSubjectAltName,
   flattenId,
@@ -526,6 +528,29 @@ describe('isFileReadable', () => {
       },
     )
   }
+})
+
+describe('emptyDir', () => {
+  test('removes nested files and keeps skipped paths', async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'vite-empty-dir-'))
+    try {
+      const nestedDir = path.join(root, 'nested')
+      fs.mkdirSync(nestedDir)
+      fs.writeFileSync(path.join(root, 'remove.txt'), 'remove')
+      fs.writeFileSync(path.join(root, 'keep.txt'), 'keep')
+      fs.writeFileSync(path.join(nestedDir, 'remove.txt'), 'remove')
+      fs.writeFileSync(path.join(nestedDir, 'keep.txt'), 'keep')
+
+      await emptyDir(root, ['keep.txt', 'nested/keep.txt'])
+
+      expect(fs.existsSync(path.join(root, 'remove.txt'))).toBe(false)
+      expect(fs.existsSync(path.join(root, 'keep.txt'))).toBe(true)
+      expect(fs.existsSync(path.join(nestedDir, 'remove.txt'))).toBe(false)
+      expect(fs.existsSync(path.join(nestedDir, 'keep.txt'))).toBe(true)
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true })
+    }
+  })
 })
 
 describe('processSrcSetSync', () => {

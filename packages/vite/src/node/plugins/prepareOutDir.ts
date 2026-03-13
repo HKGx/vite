@@ -16,7 +16,7 @@ export function prepareOutDirPlugin(): Plugin {
     },
     renderStart: {
       order: 'pre',
-      handler() {
+      async handler() {
         if (rendered.has(this.environment)) {
           return
         }
@@ -36,18 +36,18 @@ export function prepareOutDirPlugin(): Plugin {
             resolvedOutDirs,
             this.environment.logger,
           )
-          prepareOutDir(resolvedOutDirs, emptyOutDir, this.environment)
+          await prepareOutDir(resolvedOutDirs, emptyOutDir, this.environment)
         }
       },
     },
   }
 }
 
-function prepareOutDir(
+async function prepareOutDir(
   outDirs: Set<string>,
   emptyOutDir: boolean | null,
   environment: Environment,
-) {
+): Promise<void> {
   const { publicDir } = environment.config
   const outDirsArray = [...outDirs]
   for (const outDir of outDirs) {
@@ -66,7 +66,7 @@ function prepareOutDir(
           return ''
         })
         .filter(Boolean)
-      emptyDir(outDir, [...skipDirs, '.git'])
+      await emptyDir(outDir, [...skipDirs, '.git'])
     }
     if (
       environment.config.build.copyPublicDir &&
